@@ -47,17 +47,121 @@ openPDFEPS <- function(file, height= PDFheight, width= PDFwidth, PDFEPS = 1) {
     postscript(paste(file, ".eps", sep=""), width, height, horizontal=FALSE)
   }
 }
-# PDFEPS <- 1 # 0 None, 1 PDF, 2 EPS
-# PDFheight= 6 # 7 by default, so 14 makes it double higher than wide, 5 makes letters bigger (in proportion) for just one 
-# PDFwidth= 9 # 7 by default
+ PDFEPS <- 1 # 0 None, 1 PDF, 2 EPS
+ PDFheight= 6 # 7 by default, so 14 makes it double higher than wide, 5 makes letters bigger (in proportion) for just one 
+ PDFwidth= 9 # 7 by default
 
 set.seed(288)
+
+
+
+
+# Define Simple Imputation 
+#-----------------------------------------------------------------------------
+
+simpleImpute <- function(data, cols, func, name, file = "OK_datasets/"){
+  dataImp <- data
+  func2 <- ifelse(func=="random", func, get(func))
+  path = paste0(file, name, "_", func, collapse = "")
+  
+  for(i in cols){
+    print(i)
+    if(class(dataImp[,colnames(dataImp)%in%i]) == "factor"){
+      dataImp[,colnames(dataImp)%in%i] <- as.character(dataImp[,colnames(dataImp)%in%i])
+      dataImp[,colnames(dataImp)%in%i] <-  impute(dataImp[,i], func2) 
+      dataImp[,colnames(dataImp)%in%i] <- as.factor(dataImp[,colnames(dataImp)%in%i])
+    }
+    else{
+      if (class(dataImp[,colnames(dataImp)%in%i]) == "numeric" | class(dataImp[,colnames(dataImp)%in%i]) == "integer"){
+        func3 <- ifelse(func =="mode", get("mean"), func2)
+        dataImp[,colnames(dataImp)%in%i] <-  impute(dataImp[,i], func3) 
+      }else{
+        dataImp[,colnames(dataImp)%in%i] <-  impute(dataImp[,i], func2) 
+      }
+      
+    }
+  }
+  
+  tmp <- rbind(data.frame(name="orig", att = cols[1], values = as.character(data[,colnames(data)%in%cols[1]])),
+               data.frame(name="imputed", att = cols[1], values = as.character(dataImp[,colnames(dataImp)%in%cols[1]])))
+  
+  if (length(cols)>=2){
+    for(i in 2:length(cols)){
+      tmp <- rbind(tmp,
+                   data.frame(name="orig", att = cols[i], values = as.character(data[,colnames(data)%in%cols[i]])),
+                   data.frame(name="imputed", att = cols[i], values = as.character(dataImp[,colnames(dataImp)%in%cols[i]])))
+    }
+  }
+  
+  g <- ggplot(tmp, aes(values, fill = name)) + geom_bar(alpha = 0.5,position = "dodge") + facet_grid(. ~ att, scales = "free") +
+    theme_light() + theme(axis.text.x = element_text(angle = 65, hjust = 1)) +
+    ggtitle(paste0(name,": ",func," Imputation", collase = ""))
+  
+  
+  saveRDS(dataImp, file = paste0(path,".rds", collapse = ""))
+  write.csv(dataImp, file = paste0(path,".csv", collapse = ""), row.names = FALSE)
+  writeARFF(dataImp, path = paste0(path,".arff", collapse = ""))
+  
+  openPDFEPS(paste0(path,"_plot",collapse = ""), height= 8, width= 12)
+  #print(g)
+  # dev.off()
+}
+
+getSimpleImp <- function(data, cols, func, name, file){
+  
+  # Impute with Random values
+  print("Random Imputation")
+  set.seed(288)
+  func = "random"
+  simpleImpute(data, cols, func, name, file)
+  
+  # Impute with median
+  print("Median Imputation")
+  set.seed(288)
+  func = "mode"
+  simpleImpute(data, cols, func, name, file)
+  
+  # Impute with min
+  print("Min Imputation")
+  set.seed(288)
+  func = "min"
+  simpleImpute(data, cols, func, name, file)
+  
+  # Delete Columns
+  print("Columns Imputation")
+  path = paste0(file, name, "_columns", collapse = "")
+  dataImp <- data[,colSums(is.na(data)) == 0] 
+  #data[,colSums(is.na(data)) == 0] 
+  saveRDS(dataImp, file = paste0(path,".rds", collapse = ""))
+  write.csv(dataImp, file = paste0(path,".csv", collapse = ""), row.names = FALSE)
+  
+  # Original Data split by WithNA and WithoutNA
+  ok <- complete.cases(data)
+  
+  print("NAs")
+  dataNA <- data[!ok,]
+  dataNA <- dataNA[,colSums(is.na(dataNA)) == 0] 
+  path = paste0(file, name, "_orig_NAs", collapse = "")
+  saveRDS(dataNA, file = paste0(path,".rds", collapse = ""))
+  write.csv(dataNA, file = paste0(path,".csv", collapse = ""), row.names = FALSE)
+  
+  print("No NAs")
+  dataNoNA <- data[ok,]
+  path = paste0(file, name, "_orig_clean", collapse = "")
+  saveRDS(dataNoNA, file = paste0(path,".rds", collapse = ""))
+  write.csv(dataNoNA, file = paste0(path,".csv", collapse = ""), row.names = FALSE)
+  
+}
+
 
 
 #-----------------------------------------------------------------------------
 #---------------------------- LOAD DATASETS ----------------------------------
 #-----------------------------------------------------------------------------
 
+
+# First set your Working directory correctly!
+# Easiest way to do this in RStudio: Click on Session/Set Working Directory/To Source file location
 
 files <-list.files("datasets/", pattern = ".arff")
 i = 1 
@@ -74,8 +178,8 @@ for(i in 1:length(files)){
 
 }
 
-
-# Uncomment RDS data creation in simpleImpute
+# no clue as to what dataset these are exactly, probably the original datasets which can be found in /datasets, 
+# but then under a different directory structure I guess?
 
 # Adults
 data <- readRDS("OK_datasets/Adult/Adult_orig.rds")
@@ -154,102 +258,6 @@ mode <- function(x) {
 }
 
 
-# Simple Imputation 
-#-----------------------------------------------------------------------------
-
-simpleImpute <- function(data, cols, func, name, file = "OK_datasets/"){
-  dataImp <- data
-  func2 <- ifelse(func=="random", func, get(func))
-  path = paste0(file, name, "_", func, collapse = "")
-  
-  for(i in cols){
-    print(i)
-    if(class(dataImp[,colnames(dataImp)%in%i]) == "factor"){
-      dataImp[,colnames(dataImp)%in%i] <- as.character(dataImp[,colnames(dataImp)%in%i])
-      dataImp[,colnames(dataImp)%in%i] <-  impute(dataImp[,i], func2) 
-      dataImp[,colnames(dataImp)%in%i] <- as.factor(dataImp[,colnames(dataImp)%in%i])
-    }
-    else{
-      if (class(dataImp[,colnames(dataImp)%in%i]) == "numeric" | class(dataImp[,colnames(dataImp)%in%i]) == "integer"){
-        func3 <- ifelse(func =="mode", get("mean"), func2)
-        dataImp[,colnames(dataImp)%in%i] <-  impute(dataImp[,i], func3) 
-      }else{
-        dataImp[,colnames(dataImp)%in%i] <-  impute(dataImp[,i], func2) 
-      }
-      
-    }
-  }
-  
-  tmp <- rbind(data.frame(name="orig", att = cols[1], values = as.character(data[,colnames(data)%in%cols[1]])),
-               data.frame(name="imputed", att = cols[1], values = as.character(dataImp[,colnames(dataImp)%in%cols[1]])))
-  
-  if (length(cols)>=2){
-    for(i in 2:length(cols)){
-      tmp <- rbind(tmp,
-                   data.frame(name="orig", att = cols[i], values = as.character(data[,colnames(data)%in%cols[i]])),
-                   data.frame(name="imputed", att = cols[i], values = as.character(dataImp[,colnames(dataImp)%in%cols[i]])))
-    }
-  }
-  
-   g <- ggplot(tmp, aes(values, fill = name)) + geom_bar(alpha = 0.5,position = "dodge") + facet_grid(. ~ att, scales = "free") +
-     theme_light() + theme(axis.text.x = element_text(angle = 65, hjust = 1)) +
-     ggtitle(paste0(name,": ",func," Imputation", collase = ""))
-
-  
-   saveRDS(dataImp, file = paste0(path,".rds", collapse = ""))
-   write.csv(dataImp, file = paste0(path,".csv", collapse = ""), row.names = FALSE)
-  writeARFF(dataImp, path = paste0(path,".arff", collapse = ""))
- 
-   openPDFEPS(paste0(path,"_plot",collapse = ""), height= 8, width= 12)
-   print(g)
-  # dev.off()
-}
-
-getSimpleImp <- function(data, cols, func, name, file){
-  
-  # Impute with Random values
-  print("Random Imputation")
-  set.seed(288)
-  func = "random"
-  simpleImpute(data, cols, func, name, file)
-  
-  # Impute with median
-  print("Median Imputation")
-  set.seed(288)
-  func = "mode"
-  simpleImpute(data, cols, func, name, file)
-  
-  # Impute with min
-  print("Min Imputation")
-  set.seed(288)
-  func = "min"
-  simpleImpute(data, cols, func, name, file)
-  
-  # Delete Columns
-  print("Columns Imputation")
-  path = paste0(file, name, "_columns", collapse = "")
-  dataImp <- data[,colSums(is.na(data)) == 0] 
-  #data[,colSums(is.na(data)) == 0] 
-  saveRDS(dataImp, file = paste0(path,".rds", collapse = ""))
-  write.csv(dataImp, file = paste0(path,".csv", collapse = ""), row.names = FALSE)
-  
-  # Original Data split by WithNA and WithoutNA
-  ok <- complete.cases(data)
-  
-  print("NAs")
-  dataNA <- data[!ok,]
-  dataNA <- dataNA[,colSums(is.na(dataNA)) == 0] 
-  path = paste0(file, name, "_orig_NAs", collapse = "")
-  saveRDS(dataNA, file = paste0(path,".rds", collapse = ""))
-  write.csv(dataNA, file = paste0(path,".csv", collapse = ""), row.names = FALSE)
-  
-  print("No NAs")
-  dataNoNA <- data[ok,]
-  path = paste0(file, name, "_orig_clean", collapse = "")
-  saveRDS(dataNoNA, file = paste0(path,".rds", collapse = ""))
-  write.csv(dataNoNA, file = paste0(path,".csv", collapse = ""), row.names = FALSE)
-
-}
 
 # Model-based Imputation 
 #-----------------------------------------------------------------------------
