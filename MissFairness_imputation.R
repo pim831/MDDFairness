@@ -163,11 +163,11 @@ getSimpleImp <- function(data, cols, func, name, file){
 # First set your Working directory correctly!
 # Easiest way to do this in RStudio: Click on Session/Set Working Directory/To Source file location
 
-files <-list.files("datasets/", pattern = ".arff")
+files <-list.files("datasets/orig", pattern = ".arff")
 i = 1 
 for(i in 1:length(files)){
   
-  file = paste0("datasets/", files[i])
+  file = paste0("datasets/orig", files[i])
   data = readARFF(file)
   print("mode/mean Imputation")
   set.seed(288)
@@ -177,6 +177,11 @@ for(i in 1:length(files)){
   simpleImpute(data, cols, "mode", name, "datasets/")
 
 }
+
+
+
+
+
 
 # no clue as to what dataset these are exactly, probably the original datasets which can be found in /datasets, 
 # but then under a different directory structure I guess?
@@ -332,6 +337,25 @@ saveRDS(cbind(imputed2$ximp,class), file = paste0(path,".rds", collapse = ""))
 write.csv(cbind(imputed2$ximp,class), file = paste0(path,".csv", collapse = ""), row.names = FALSE)
 
 
+# New MissForest:
+# doesn't work yet for the recidivism dataset as missforest does not work for factors with more than 53 levels, and recidivism has the factor c_charge_desc with 438 levels. thus we should aggregate those if we want to use missforest
+set.seed(288)
+print("MissForest Imputation")
+
+
+files <-list.files("datasets/orig")
+i = 1 
+for(i in 1:length(files)){
+  # Read datasets
+  file = paste0("datasets/orig/", files[i])
+  # perform imputation
+  result = missForest(readARFF(file))
+  # Save imputation to disk
+  names = strsplit(file, "/")
+  name = lapply(names, tail, n=1L)
+  result_path = paste0("datasets/missforest/", name)
+  writeARFF(result$ximp, path = result_path)
+}
 
 
 #-----------------------------------------------------------------------------
