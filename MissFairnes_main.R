@@ -12,7 +12,6 @@ if (length(.lib[!.inst])>0) install.packages(.lib[!.inst], repos=c("http://rstud
 lapply(.lib, require, character.only=TRUE)
 
 
-source("runmethods.R")
 source("libfair.R")
 
 # set.seed(288)
@@ -169,14 +168,6 @@ cm <- function(preds,mlabs, posClass)
   rescm$FPR<-rescm$FP/(rescm$TN+rescm$FP)
   return(rescm)
 }
-
-#spd(rescmpriv,rescmnopriv)
-spd <- function(cmp,cmnop)
-{
-  return(((cmp$TP+cmp$FP)/cmp$N)- ((cmnop$TP+cmnop$FP)/cmnop$N))
-}
-
-
 
 # fairness_results(preds, test, WhatColPriv, WhoPriv, WhoNoPriv, lnamepos[[datasets[id]]][1]))
 
