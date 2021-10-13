@@ -167,7 +167,7 @@ files <-list.files("datasets/orig", pattern = ".arff")
 i = 1 
 for(i in 1:length(files)){
   
-  file = paste0("datasets/orig", files[i])
+  file = paste0("datasets/orig/", files[i])
   data = readARFF(file)
   print("mode/mean Imputation")
   set.seed(288)
@@ -339,23 +339,62 @@ write.csv(cbind(imputed2$ximp,class), file = paste0(path,".csv", collapse = ""),
 
 # New MissForest:
 # doesn't work yet for the recidivism dataset as missforest does not work for factors with more than 53 levels, and recidivism has the factor c_charge_desc with 438 levels. thus we should aggregate those if we want to use missforest
+
+
+
+
 set.seed(288)
 print("MissForest Imputation")
 
 
 files <-list.files("datasets/orig")
+
+file = paste0("datasets/orig/", files[3])
+result = readARFF(file)
+
+
+# Write new recidivism datasets after having dropped missing values in c_charge_desc
+j = 3
+for(j in 3:4){
+  recidivism = readARFF(paste0("datasets/orig/", files[j]))
+  correct_recidivism = recidivism[!is.na(recidivism$c_charge_desc),]
+  writeARFF(correct_recidivism, path = paste0("datasets/no-c_charge/", files[j]))
+}
+
+
+files <-list.files("datasets/no-c_charge")
+
+
+
 i = 1 
-for(i in 1:length(files)){
-  # Read datasets
-  file = paste0("datasets/orig/", files[i])
-  # perform imputation
-  result = missForest(readARFF(file))
+for(i in 3:length(files)){
+  # Read dataset location
+  file = paste0("datasets/no-c_charge/", files[i])
+  # Load dataset
+  data = readARFF(file)
+  # Remove c_charge_desc for recidivism
+  if(i>=3 && i<=4){
+    # Split off c_charge_desc from the dataset
+    c_charge = subset(data, select = c(c_charge_desc))
+    no_c_charge = subset(data, select = -c(c_charge_desc) )
+    #perform imputation
+    imputed_result = missForest(no_c_charge)$ximp
+    
+    
+    # Add back c_charge_desc to the imputed dataset
+    imputed_result$c_charge_desc = c_charge[,1]
+  } else {
+    # perform imputation
+    imputed_result = missForest(data)$ximp
+  }
+  
   # Save imputation to disk
   names = strsplit(file, "/")
   name = lapply(names, tail, n=1L)
   result_path = paste0("datasets/missforest/", name)
-  writeARFF(result$ximp, path = result_path)
+  writeARFF(imputed_result, path = result_path)
 }
+
 
 
 #-----------------------------------------------------------------------------
