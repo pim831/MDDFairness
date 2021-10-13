@@ -3,7 +3,7 @@
 ##
 
 # install and import all packages
-neededPackages <- c("dplyr", "mice", "missForest", "farff")
+neededPackages <- c("dplyr", "mice", "missForest", "farff", "VIM")
 installedPackages <- neededPackages %in% installed.packages()
 if (length(neededPackages[!installedPackages]) > 0) {
   install.packages(neededPackages[!installedPackages], repos=c("http://rstudio.org/_packages", "http://cran.rstudio.com"))
