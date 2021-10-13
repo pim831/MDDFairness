@@ -8,3 +8,7 @@
 
 # User-specific files
 .Ruserdata
+
+
+### Project related ###
+refactored_simulation/datasets/imputed/*.arff
