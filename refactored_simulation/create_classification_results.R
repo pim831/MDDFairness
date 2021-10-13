@@ -12,6 +12,9 @@ lapply(neededPackages, require, character.only=TRUE)
 
 source("helper_functions.R")
 
+# -------------------------------------------------------------------------------------------------
+# Functions
+# -------------------------------------------------------------------------------------------------
 
 ##
 # Returns multinomial logistic regression model trained on data.
@@ -34,6 +37,10 @@ testData <-  function(model, data) {
   # TODO: implement
 }
 
+
+# -------------------------------------------------------------------------------------------------
+# Main
+# -------------------------------------------------------------------------------------------------
 
 datasets <- list.files(file.path("datasets", "original"), pattern="*.arff")  # read original file
 

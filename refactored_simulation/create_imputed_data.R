@@ -13,11 +13,19 @@ lapply(neededPackages, require, character.only=TRUE)
 source("helper_functions.R")
 source("imputation_methods.R")
 
+# -------------------------------------------------------------------------------------------------
+# Functions
+# -------------------------------------------------------------------------------------------------
+
 saveImputedFile <- function(dataframe, name, method) {
   imputedDataframe <- missingForest(dataframe)
   filename <- paste(name, dataset, sep="_")
   writeARFF(dataframe, file.path("datasets", "imputed", filename), overwrite=TRUE)
 }
+
+# -------------------------------------------------------------------------------------------------
+# Main
+# -------------------------------------------------------------------------------------------------
 
 # iterate over all datasets
 datasets <- list.files(file.path("datasets", "original"), pattern="*.arff")
