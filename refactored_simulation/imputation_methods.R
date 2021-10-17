@@ -31,15 +31,12 @@ kNeirestImputation <- function(dataframe) {
   dataframe[dataframe == "character"] <- NA
   
   #Find name of first and last column
-  firstCol <- names(dataframe)[1]
-  nCols <- ncol(dataframe)
-  lastCol <- names(dataframe)[nCols]
+  originalCols <- names(dataframe)
   
   #Run the k-Nearest Neighbour imputation method and save it in a new variable. Note: the k-value is not fixed
-  dataframe <- kNN(dataframe, variable = colnames(dataframe), k = 5)
-  
+  dataframe <- kNN(dataframe, variable = colnames(dataframe), k = 5, makeNA = NULL)
   #Delete the columns added by the kNN imputation function
-  dataframe <- subset(dataframe, select = firstCol:lastCol)
+  dataframe <- subset(dataframe, select = originalCols)
   return (dataframe)
 }
 
