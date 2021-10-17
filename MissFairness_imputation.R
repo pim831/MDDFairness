@@ -338,8 +338,6 @@ write.csv(cbind(imputed2$ximp,class), file = paste0(path,".csv", collapse = ""),
 
 
 # New MissForest:
-# doesn't work yet for the recidivism dataset as missforest does not work for factors with more than 53 levels, and recidivism has the factor c_charge_desc with 438 levels. thus we should aggregate those if we want to use missforest
-
 
 
 
