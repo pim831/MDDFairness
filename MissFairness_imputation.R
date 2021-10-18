@@ -365,7 +365,7 @@ files <-list.files("datasets/no-c_charge")
 
 
 i = 1 
-for(i in 3:length(files)){
+for(i in 1:length(files)){
   # Read dataset location
   file = paste0("datasets/no-c_charge/", files[i])
   # Load dataset
