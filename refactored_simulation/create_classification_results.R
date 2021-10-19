@@ -128,7 +128,11 @@ for (dataset in datasets) {
   dataframe <- readARFF(file.path("datasets", "original", dataset))
   index <- createDataPartition(dataframe, p = 0.75, list=FALSE) # split data in 75% train, 25% test
 
-  imputationMethods <- c("ld", "knn", "modeImputation", "missingForestImputation", "mice")
+  imputationMethods <- c("knn", "missingForest", "mode", "mice")
+  
+  # create empty results dataframe
+  results <- data.frame(matrix(ncol = 3, nrow = 0))
+  colnames(results) <- c("imputationMethod", "accuracy", "spd")
   
   for (imputationMethod in imputationMethods) {
     datasetName <- paste(imputationMethod, dataset, sep = "_")
@@ -153,6 +157,11 @@ for (dataset in datasets) {
     # compute spd
     spd <- get_spd(preds, testData, WhatColPriv, WhoPriv, WhoNoPriv, lnamepos[[dataset]][1])
     
-    # TODO: save spd/accuracy in file
+    # append results to results dataframe
+    results[nrow(results) + 1,] = c(imputationMethod, accuracy, spd)
   }
+  
+  # save results in file
+  filename <- paste(dataset, ".Rda", sep = "")
+  print(results)
 }
