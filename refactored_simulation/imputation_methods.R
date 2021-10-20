@@ -44,7 +44,17 @@ modeImputation <- function(dataframe) {
 }
 
 kNeirestImputation <- function(dataframe) {
-  # TODO: implement
+  str(dataframe)
+  #Set all missing values to NA
+  dataframe[dataframe == "character"] <- NA
+  
+  #Find name of first and last column
+  originalCols <- names(dataframe)
+  
+  #Run the k-Nearest Neighbour imputation method and save it in a new variable. Note: the k-value is not fixed
+  dataframe <- kNN(dataframe, variable = colnames(dataframe), k = 5, makeNA = NULL)
+  #Delete the columns added by the kNN imputation function
+  dataframe <- subset(dataframe, select = originalCols)
   return (dataframe)
 }
 

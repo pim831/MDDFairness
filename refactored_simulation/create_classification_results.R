@@ -122,41 +122,68 @@ get_spd <- function(preds, test, WhatColPriv, WhoPriv, WhoNoPriv, posClass){
 # Main
 # -------------------------------------------------------------------------------------------------
 
-datasets <- list.files(file.path("datasets", "original"), pattern="*.arff")  # read original file
+datasets <- list.files(file.path("datasets/original", "Recidivism"), pattern="*.arff")  # read original file
+
+listAcc <- list()
+listSpd <- list()
 
 for (dataset in datasets) {
-  dataframe <- readARFF(file.path("datasets", "original", dataset))
-  index <- createDataPartition(dataframe, p = 0.75, list=FALSE) # split data in 75% train, 25% test
+  dataframe <- readARFF(file.path("datasets/original", "Recidivism", dataset))
+  # index <- createDataPartition(dataframe, p = 0.75, list=FALSE) # split data in 75% train, 25% test
+  rowsDF <- nrow(dataframe)
+  #Around 75% of the data should be used for the training set
+  nTrainDF <- ceiling(0.75 * rowsDF)
 
-  imputationMethods <- c("knn", "missingForest", "mode", "mice")
-  
-  # create empty results dataframe
-  results <- data.frame(matrix(ncol = 3, nrow = 0))
-  colnames(results) <- c("imputationMethod", "accuracy", "spd")
+  # imputationMethods <- c("ld", "knn", "modeImputation", "missingForestImputation", "mice")
+  imputationMethods <- c("knn", "mode", "missingForest", "mice")
   
   for (imputationMethod in imputationMethods) {
     datasetName <- paste(imputationMethod, dataset, sep = "_")
-    dataframe <- readARFF(file.path("datasets", "imputed", datasetName))
+    dataframe <- readARFF(file.path("datasets/imputed", "Recidivism", datasetName))
     dataframe <- preprocessData(dataframe)
-    trainData <- dataframe[index,]
-    testData <- dataframe[-index,]  
     
-    # train model
-    trainedModel <- trainModel(trainData)
+    #Initialize values for sum accuracy and spd
+    sumAcc <- 0
+    sumSpd <- 0
+    #Write number of rounds to split train and test set
+    splits <- 50
     
-    # create predictions for test dataset
-    preds <- getPreds(trainedModel, testData)
+    #Sample multiple train/test sets and calculate the average
+    for (i in 1:splits){
+      #Sample data for training or test set
+      set.seed(2)
+      tr <- sample(1:rowsDF, nTrainDF)
+      ts <-- tr
+      
+      trainData <- dataframe[tr, ]
+      testData <- dataframe[ts, ] 
+      
+      # train model
+      trainedModel <- trainModel(trainData)
+      
+      # create predictions for test dataset
+      preds <- getPreds(trainedModel, testData)
+      
+      # compute accuracy
+      accuracy <- sum((preds == testData$class)/length(preds))
+      sumAcc <- sumAcc + accuracy
+      
+      WhatColPriv = lprivs[[dataset]][1]
+      WhoPriv = lprivs[[dataset]][2]
+      WhoNoPriv = lnoprivs[[dataset]][2]
+      
+      # compute spd
+      spd <- get_spd(preds, testData, WhatColPriv, WhoPriv, WhoNoPriv, lnamepos[[dataset]][1])
+      sumSpd <- sumSpd + spd
+    }
     
-    # compute accuracy
-    accuracy <- sum((preds == testData$class)/length(preds))
+    #Calculate the average accuracy and spd
+    avgAcc <- sumAcc / splits
+    avgSpd <- sumSpd / splits
     
-    WhatColPriv = lprivs[[dataset]][1]
-    WhoPriv = lprivs[[dataset]][2]
-    WhoNoPriv = lnoprivs[[dataset]][2]
-    
-    # compute spd
-    spd <- get_spd(preds, testData, WhatColPriv, WhoPriv, WhoNoPriv, lnamepos[[dataset]][1])
-    
+    listAcc <- c(listAcc, paste(imputationMethod, avgAcc))
+    listSpd <- c(listSpd, paste(imputationMethod, avgSpd))
+
     # append results to results dataframe
     results[nrow(results) + 1,] = c(imputationMethod, accuracy, spd)
   }
