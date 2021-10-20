@@ -124,15 +124,16 @@ get_spd <- function(preds, test, WhatColPriv, WhoPriv, WhoNoPriv, posClass){
 
 datasets <- list.files(file.path("datasets", "original"), pattern="*.arff")  # read original file
 
+# create empty results dataframe
+results <- data.frame(matrix(ncol = 4, nrow = 0))
+colnames(results) <- c("acc", "spd", "imp_method", "classifier", "dataset")
+
+
 for (dataset in datasets) {
   dataframe <- readARFF(file.path("datasets", "original", dataset))
-  index <- createDataPartition(dataframe, p = 0.75, list=FALSE) # split data in 75% train, 25% test
+  index <- createDataPartition(dataframe$class, p = 0.75, list=FALSE) # split data in 75% train, 25% test
 
   imputationMethods <- c("knn", "missingForest", "mode", "mice")
-  
-  # create empty results dataframe
-  results <- data.frame(matrix(ncol = 3, nrow = 0))
-  colnames(results) <- c("imputationMethod", "accuracy", "spd")
   
   for (imputationMethod in imputationMethods) {
     datasetName <- paste(imputationMethod, dataset, sep = "_")
@@ -158,10 +159,15 @@ for (dataset in datasets) {
     spd <- get_spd(preds, testData, WhatColPriv, WhoPriv, WhoNoPriv, lnamepos[[dataset]][1])
     
     # append results to results dataframe
-    results[nrow(results) + 1,] = c(imputationMethod, accuracy, spd)
+    results[nrow(results) + 1,] = c(accuracy, spd, imputationMethod, "LogisticRegression", dataset)
   }
   
-  # save results in file
-  filename <- paste(dataset, ".Rda", sep = "")
-  print(results)
 }
+
+# save results in file
+
+print(results)
+filename <- paste(dataset, ".csv", sep = "")
+filepath <- file.path("results", filename)
+write.csv(x = results, file = filepath)
+
