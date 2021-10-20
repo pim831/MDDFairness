@@ -10,8 +10,8 @@ if (length(neededPackages[!installedPackages]) > 0) {
 }
 lapply(neededPackages, require, character.only=TRUE)
 
-source("C:/Users/20168482/OneDrive/Documents/TUe_master/TUe_year_5/Kwartiel1/Research_Topics_in_Data_Mining/MDDFairness/refactored_simulation/helper_functions.R")
-source("C:/Users/20168482/OneDrive/Documents/TUe_master/TUe_year_5/Kwartiel1/Research_Topics_in_Data_Mining/MDDFairness/refactored_simulation/imputation_methods.R")
+source("helper_functions.R")
+source("imputation_methods.R")
 
 # -------------------------------------------------------------------------------------------------
 # Functions
@@ -20,7 +20,7 @@ source("C:/Users/20168482/OneDrive/Documents/TUe_master/TUe_year_5/Kwartiel1/Res
 saveImputedFile <- function(dataframe, name, method) {
   imputedDataframe <- missingForest(dataframe)
   filename <- paste(name, dataset, sep="_")
-  writeARFF(dataframe, file.path("C:/Users/20168482/OneDrive/Documents/TUe_master/TUe_year_5/Kwartiel1/Research_Topics_in_Data_Mining/MDDFairness/refactored_simulation/datasets", "imputed", filename), overwrite=TRUE)
+  writeARFF(dataframe, file.path("datasets", "imputed", filename), overwrite=TRUE)
 }
 
 # -------------------------------------------------------------------------------------------------
@@ -28,9 +28,9 @@ saveImputedFile <- function(dataframe, name, method) {
 # -------------------------------------------------------------------------------------------------
 
 # iterate over all datasets
-datasets <- list.files(file.path("C:/Users/20168482/OneDrive/Documents/TUe_master/TUe_year_5/Kwartiel1/Research_Topics_in_Data_Mining/MDDFairness/refactored_simulation/datasets", "original"), pattern="*.arff")
+datasets <- list.files(file.path("datasets", "original"), pattern="*.arff")
 for (dataset in datasets) {
-  dataframe <- readARFF(file.path("C:/Users/20168482/OneDrive/Documents/TUe_master/TUe_year_5/Kwartiel1/Research_Topics_in_Data_Mining/MDDFairness/refactored_simulation/datasets", "original", dataset))
+  dataframe <- readARFF(file.path("datasets", "original", dataset))
   
   # start imputation
   saveImputedFile(dataframe, "knn", kNeirestImputation)

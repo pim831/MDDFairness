@@ -10,7 +10,7 @@ if (length(neededPackages[!installedPackages]) > 0) {
 }
 lapply(neededPackages, require, character.only=TRUE)
 
-source("C:/Users/20168482/OneDrive/Documents/TUe_master/TUe_year_5/Kwartiel1/Research_Topics_in_Data_Mining/MDDFairness/refactored_simulation/helper_functions.R")
+source("helper_functions.R")
 
 # -------------------------------------------------------------------------------------------------
 # Metadata: Protected attributes & (non-)privileged values
@@ -122,13 +122,13 @@ get_spd <- function(preds, test, WhatColPriv, WhoPriv, WhoNoPriv, posClass){
 # Main
 # -------------------------------------------------------------------------------------------------
 
-datasets <- list.files(file.path("C:/Users/20168482/OneDrive/Documents/TUe_master/TUe_year_5/Kwartiel1/Research_Topics_in_Data_Mining/MDDFairness/refactored_simulation/datasets/original", "Titanic"), pattern="*.arff")  # read original file
+datasets <- list.files(file.path("datasets/original", "Recidivism"), pattern="*.arff")  # read original file
 
 listAcc <- list()
 listSpd <- list()
 
 for (dataset in datasets) {
-  dataframe <- readARFF(file.path("C:/Users/20168482/OneDrive/Documents/TUe_master/TUe_year_5/Kwartiel1/Research_Topics_in_Data_Mining/MDDFairness/refactored_simulation/datasets/original", "Titanic", dataset))
+  dataframe <- readARFF(file.path("datasets/original", "Recidivism", dataset))
   # index <- createDataPartition(dataframe, p = 0.75, list=FALSE) # split data in 75% train, 25% test
   rowsDF <- nrow(dataframe)
   #Around 75% of the data should be used for the training set
@@ -139,7 +139,7 @@ for (dataset in datasets) {
   
   for (imputationMethod in imputationMethods) {
     datasetName <- paste(imputationMethod, dataset, sep = "_")
-    dataframe <- readARFF(file.path("C:/Users/20168482/OneDrive/Documents/TUe_master/TUe_year_5/Kwartiel1/Research_Topics_in_Data_Mining/MDDFairness/refactored_simulation/datasets/imputed", "Titanic", datasetName))
+    dataframe <- readARFF(file.path("datasets/imputed", "Recidivism", datasetName))
     dataframe <- preprocessData(dataframe)
     
     #Initialize values for sum accuracy and spd
