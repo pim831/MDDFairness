@@ -125,7 +125,7 @@ get_spd <- function(preds, test, WhatColPriv, WhoPriv, WhoNoPriv, posClass){
 datasets <- list.files(file.path("datasets/original", "Recidivism"), pattern="*.arff")  # read original file
 
 # create empty results dataframe
-results <- data.frame(matrix(ncol = 4, nrow = 0))
+results <- data.frame(matrix(ncol = 5, nrow = 0))
 colnames(results) <- c("acc", "spd", "imp_method", "classifier", "dataset")
 
 
