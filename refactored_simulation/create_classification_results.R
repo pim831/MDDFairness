@@ -183,6 +183,12 @@ for (dataset in datasets) {
     
     listAcc <- c(listAcc, paste(imputationMethod, avgAcc))
     listSpd <- c(listSpd, paste(imputationMethod, avgSpd))
-    # TODO: save spd/accuracy in file
+
+    # append results to results dataframe
+    results[nrow(results) + 1,] = c(imputationMethod, accuracy, spd)
   }
+  
+  # save results in file
+  filename <- paste(dataset, ".Rda", sep = "")
+  print(results)
 }

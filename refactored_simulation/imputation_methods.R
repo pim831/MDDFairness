@@ -16,12 +16,30 @@ missingForest <- function(dataframe) {
 }
 
 listwiseDeletion <- function(dataframe) {
-  # TODO: implement
+  dataframe = na.omit(dataframe)
   return (dataframe)
 }
 
 modeImputation <- function(dataframe) {
   # TODO: implement
+  cols = colnames(dataframe)[colSums(is.na(dataframe)) > 0]
+  
+  for(i in cols){
+    if(class(dataframe[,colnames(dataframe)%in%i]) == "factor"){
+      dataframe[,colnames(dataframe)%in%i] <-  impute(dataframe[,i], mode) 
+      dataframe[,colnames(dataframe)%in%i] <- as.factor(dataframe[,colnames(dataframe)%in%i])
+    }
+    else{
+      if (class(dataframe[,colnames(dataframe)%in%i]) == "numeric" | class(dataframe[,colnames(dataframe)%in%i]) == "integer"){
+        dataframe[,colnames(dataframe)%in%i] <-  impute(dataframe[,i], mean) 
+      }else{
+        print("error: column is neither categorical nor numeric")
+      }
+      
+    }
+  }
+  
+  
   return (dataframe)
 }
 
