@@ -16,17 +16,45 @@ missingForest <- function(dataframe) {
 }
 
 listwiseDeletion <- function(dataframe) {
-  # TODO: implement
+  dataframe = na.omit(dataframe)
   return (dataframe)
 }
 
 modeImputation <- function(dataframe) {
   # TODO: implement
+  cols = colnames(dataframe)[colSums(is.na(dataframe)) > 0]
+  
+  for(i in cols){
+    if(class(dataframe[,colnames(dataframe)%in%i]) == "factor"){
+      dataframe[,colnames(dataframe)%in%i] <-  impute(dataframe[,i], mode) 
+      dataframe[,colnames(dataframe)%in%i] <- as.factor(dataframe[,colnames(dataframe)%in%i])
+    }
+    else{
+      if (class(dataframe[,colnames(dataframe)%in%i]) == "numeric" | class(dataframe[,colnames(dataframe)%in%i]) == "integer"){
+        dataframe[,colnames(dataframe)%in%i] <-  impute(dataframe[,i], mean) 
+      }else{
+        print("error: column is neither categorical nor numeric")
+      }
+      
+    }
+  }
+  
+  
   return (dataframe)
 }
 
 kNeirestImputation <- function(dataframe) {
-  # TODO: implement
+  str(dataframe)
+  #Set all missing values to NA
+  dataframe[dataframe == "character"] <- NA
+  
+  #Find name of first and last column
+  originalCols <- names(dataframe)
+  
+  #Run the k-Nearest Neighbour imputation method and save it in a new variable. Note: the k-value is not fixed
+  dataframe <- kNN(dataframe, variable = colnames(dataframe), k = 5, makeNA = NULL)
+  #Delete the columns added by the kNN imputation function
+  dataframe <- subset(dataframe, select = originalCols)
   return (dataframe)
 }
 

@@ -3,7 +3,7 @@
 ##
 
 # install and import all packages
-neededPackages <- c("dplyr", "mice", "missForest", "farff")
+neededPackages <- c("dplyr", "mice", "missForest", "farff", "VIM")
 installedPackages <- neededPackages %in% installed.packages()
 if (length(neededPackages[!installedPackages]) > 0) {
   install.packages(neededPackages[!installedPackages], repos=c("http://rstudio.org/_packages", "http://cran.rstudio.com"))
@@ -33,9 +33,9 @@ for (dataset in datasets) {
   dataframe <- readARFF(file.path("datasets", "original", dataset))
   
   # start imputation
+  saveImputedFile(dataframe, "knn", kNeirestImputation)
   saveImputedFile(dataframe, "missingForest", missingForest)
   saveImputedFile(dataframe, "ld", listwiseDeletion)
   saveImputedFile(dataframe, "modeImputation", modeImputation)
-  saveImputedFile(dataframe, "knn", kNeirestImputation)
   saveImputedFile(dataframe, "mice", miceImputation)
 }
