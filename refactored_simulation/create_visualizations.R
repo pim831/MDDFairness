@@ -17,6 +17,33 @@ source("helper_functions.R")
 # -------------------------------------------------------------------------------------------------
 # Functions
 # -------------------------------------------------------------------------------------------------
+# returns a dataframe with the perfect and majority classifier added to it
+add_extra_classifiers <-function(dataframe){
+  n_imp <-length(unique(dataframe$imp_method)) # number of imputation methods
+  datasets <- unique(dataframe$dataset) # list of datasets
+  n_datasets <- length(datasets) # number of different datasets
+  df_out <- dataframe
+  
+  df_out$perf_acc <- NA
+  df_out$perf_spd <- NA
+  df_out$maj_acc <- NA
+  df_out$maj_spd <- NA
+  
+  # spd of perfect classifier and acc of majority in order of the datasets
+  # now assumed order Adult_S, Adult_R, Titanic_S, Titanic_C, Recidivism_s, Recidivism_R
+  perf_spds <- c(0.1945, 0.1014, 0.3149, 0.5365, 0.1161, 0.0864)
+  maj_accs <- c(0.7607182, 0.7607182, 0.618029, 0.618029, 0.5493485, 0.5493485)
+  
+  for (i in 1:n_datasets){
+    df_out$perf_acc[1+((i-1)*n_imp)] <- 1.0
+    df_out$perf_spd[1+((i-1)*n_imp)] <- perf_spds[i]
+    df_out$maj_acc[1+((i-1)*n_imp)] <- maj_accs[i]
+    df_out$maj_spd[1+((i-1)*n_imp)] <- 0
+  }
+  
+  return (df_out)
+}
+
 # assumes as input a dataframe having the structure like datasets/toy_data
 create_plot <- function(dataframe){
   # some settings for the general layout of the plot
