@@ -1,5 +1,5 @@
 ##
-# File creates visualizations and tables for the results in the results folder
+# File creates visualizations of the results
 ##
 
 source("helper_functions.R")
@@ -12,8 +12,6 @@ if (length(neededPackages[!installedPackages]) > 0) {
 }
 lapply(neededPackages, require, character.only=TRUE)
 
-source("helper_functions.R")
-
 # -------------------------------------------------------------------------------------------------
 # Functions
 # -------------------------------------------------------------------------------------------------
@@ -24,21 +22,28 @@ add_extra_classifiers <-function(dataframe){
   n_datasets <- length(datasets) # number of different datasets
   df_out <- dataframe
   
+  # initialize new variables for perfect and majority classifier
   df_out$perf_acc <- NA
   df_out$perf_spd <- NA
   df_out$maj_acc <- NA
   df_out$maj_spd <- NA
   
   # spd of perfect classifier and acc of majority in order of the datasets
-  # now assumed order Adult_S, Adult_R, Titanic_S, Titanic_C, Recidivism_s, Recidivism_R
-  perf_spds <- c(0.1945, 0.1014, 0.3149, 0.5365, 0.1161, 0.0864)
+  # now assumed order Adult_R, Adult_S, Recidivism_R, Recidivism_S, Titanic_C, Titanic_S
+  perf_spds <- c(0.1014, 0.1945, 0.0864, 0.1161, 0.3149, 0.5365)
   maj_accs <- c(0.7607182, 0.7607182, 0.618029, 0.618029, 0.5493485, 0.5493485)
+  new_dataset_names <- c("Adult (Race)", "Adult (Sex)", "Recidivism (Race)", 
+                         "Recidivism (Sex)", "Titanic (Class)", "Titanic (Sex)")
   
   for (i in 1:n_datasets){
+    #insert the acc and spd values for the majority and perfect classifier
     df_out$perf_acc[1+((i-1)*n_imp)] <- 1.0
     df_out$perf_spd[1+((i-1)*n_imp)] <- perf_spds[i]
     df_out$maj_acc[1+((i-1)*n_imp)] <- maj_accs[i]
     df_out$maj_spd[1+((i-1)*n_imp)] <- 0
+    
+    # rename the dataset
+    df_out$dataset[df_out$dataset==datasets[i]] <- new_dataset_names[i]
   }
   
   return (df_out)
@@ -64,8 +69,8 @@ create_plot <- function(dataframe){
   plot <- ggplot(dataframe)+
     # first just some general layout, red areas, y=0 line etc.
     geom_rect(xmin = -Inf, xmax = +Inf,   ymin = Fymin, ymax = Fymax,   fill = "grey", alpha = 0.05, colour = "white")+
-    geom_rect(xmin = -Inf, xmax = +Inf,   ymin = +Inf, ymax = Fymin2,   fill = "lightcoral", alpha = 0.04, colour = "white")+
-    geom_rect(xmin = -Inf, xmax = +Inf,   ymin = -Inf, ymax = Fymin,   fill = "lightcoral", alpha = 0.04, colour = "white") +
+    geom_rect(xmin = -Inf, xmax = +Inf,   ymin = +Inf, ymax = Fymin2,   fill = "lightcoral", alpha = 0.06, colour = "white")+
+    geom_rect(xmin = -Inf, xmax = +Inf,   ymin = -Inf, ymax = Fymin,   fill = "lightcoral", alpha = 0.06, colour = "white") +
     geom_hline(yintercept=Fideal, linetype="dashed", color = "gray", size = 1.5) +
     annotate("text", x = -Inf + 0.1, y = Fideal, label = "Fair", angle = 90, hjust = 1.2, vjust = 1.4, colour = "darkgrey")+
     annotate("text", x = -Inf + 0.1, y = Fymin, label = "Bias", angle = 90, hjust = 1.2, vjust = 1.4, colour = "red")+ 
@@ -102,3 +107,10 @@ create_plot <- function(dataframe){
 # -------------------------------------------------------------------------------------------------
 # Main
 # -------------------------------------------------------------------------------------------------
+data <- read.csv(file = "results/results.csv", sep = "", header = TRUE)
+data <- subset(data, select = c("acc", "spd", "imp_method", "classifier", "dataset"))
+data <- add_extra_classifiers(data)
+plot <- create_plot(data)
+plot
+
+
