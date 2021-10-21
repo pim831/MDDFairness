@@ -5,7 +5,7 @@
 source("helper_functions.R")
 
 # install and import all packages
-neededPackages <- c("dplyr", "ggplot2")
+neededPackages <- c("dplyr", "ggplot2", "ggrepel")
 installedPackages <- neededPackages %in% installed.packages()
 if (length(neededPackages[!installedPackages]) > 0) {
   install.packages(neededPackages[!installedPackages], repos=c("http://rstudio.org/_packages", "http://cran.rstudio.com"))
@@ -17,6 +17,60 @@ source("helper_functions.R")
 # -------------------------------------------------------------------------------------------------
 # Functions
 # -------------------------------------------------------------------------------------------------
+# assumes as input a dataframe having the structure like datasets/toy_data
+create_plot <- function(dataframe){
+  # some settings for the general layout of the plot
+  Fideal = 0; Fymin = -0.1; Fymin2 = 0.1;Fymax = 0.1 #SPD
+  
+  ### create helper arguments for the plot
+  classifiers <- unique(dataframe$classifier) # list of classifiers
+  n_clf <- length(classifiers) # number of different classifiers
+  datasets <- unique(dataframe$dataset) # list of datasets
+  n_datasets <- length(datasets) # number of different datasets
+  n_imp <-length(unique(dataframe$imp_method)) # number of imputation methods
+
+  # define some colors that could be used in options
+  base_colors = c("#f98a92", "#7dc37e", "#78cdd1", "#96b1dc", "#d89ac5", "#c8b669")
+  colors = rep(base_colors[1:n_clf], n_clf)
+  
+  # start creating the ggplot on extended dataset
+  plot <- ggplot(dataframe)+
+    # first just some general layout, red areas, y=0 line etc.
+    geom_rect(xmin = -Inf, xmax = +Inf,   ymin = Fymin, ymax = Fymax,   fill = "grey", alpha = 0.05, colour = "white")+
+    geom_rect(xmin = -Inf, xmax = +Inf,   ymin = +Inf, ymax = Fymin2,   fill = "lightcoral", alpha = 0.04, colour = "white")+
+    geom_rect(xmin = -Inf, xmax = +Inf,   ymin = -Inf, ymax = Fymin,   fill = "lightcoral", alpha = 0.04, colour = "white") +
+    geom_hline(yintercept=Fideal, linetype="dashed", color = "gray", size = 1.5) +
+    annotate("text", x = -Inf + 0.1, y = Fideal, label = "Fair", angle = 90, hjust = 1.2, vjust = 1.4, colour = "darkgrey")+
+    annotate("text", x = -Inf + 0.1, y = Fymin, label = "Bias", angle = 90, hjust = 1.2, vjust = 1.4, colour = "red")+ 
+    annotate("text", x = -Inf + 0.1, y = Fymin2, label = "Bias", angle = 90, hjust = 0, vjust = 1.4, colour = "red") +
+    
+    # plot the perfect classifier
+    geom_point(data = dataframe, aes(perf_acc, perf_spd), size = 8, shape = 11)+
+    geom_point(aes(perf_acc, perf_spd), size = 2, colour = "white") +
+    geom_point(aes(perf_acc, perf_spd), size = 1, colour = "black") +
+    
+    # plot the majority classifier
+    geom_point(data = dataframe, aes(maj_acc, maj_spd), size = 8, shape = 13)+
+    geom_point(aes(maj_acc, maj_spd), size = 2, colour = "white") +
+    geom_point(aes(maj_acc, maj_spd), size = 1, colour = "black") +
+
+    # plot the accuracies and spd's for each imputation method and classifier
+    geom_point(aes(acc, spd, colour = imp_method, shape = imp_method), size = 10, alpha = 0.6)+
+    geom_point(aes(acc, spd), size = 2, colour = "white") +
+    geom_point(aes(acc, spd), size = 1, colour = "Black") +
+
+    # create split over different "datasets"
+    facet_wrap(~dataset, ncol = 2)+
+    
+    # some settings for the plot
+    labs(x="Accuracy", y = "SPD") +
+    scale_shape_manual(values=c(15, 16, 17, 18, 20))+
+    # scale_color_manual(values=colors)
+    theme_minimal() + 
+    theme(legend.title = element_blank())
+  
+  return (plot)
+}
 
 # -------------------------------------------------------------------------------------------------
 # Main
