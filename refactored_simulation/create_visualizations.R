@@ -92,7 +92,7 @@ create_plot <- function(dataframe){
     geom_point(aes(acc, spd), size = 1, colour = "Black") +
 
     # create split over different "datasets"
-    facet_wrap(~dataset, ncol = 2)+
+    facet_wrap(~dataset, ncol = 2, scales = "free_y")+
     
     # some settings for the plot
     labs(x="Accuracy", y = "SPD") +
