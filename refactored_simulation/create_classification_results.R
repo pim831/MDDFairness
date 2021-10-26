@@ -122,7 +122,7 @@ get_spd <- function(preds, test, WhatColPriv, WhoPriv, WhoNoPriv, posClass){
 # Main
 # -------------------------------------------------------------------------------------------------
 
-datasets <- list.files(file.path("datasets/original", "Recidivism"), pattern="*.arff")  # read original file
+datasets <- list.files(file.path("datasets", "original"), pattern="*.arff")  # read original file
 
 # create empty results dataframe
 results <- data.frame(matrix(ncol = 5, nrow = 0))
@@ -133,18 +133,17 @@ listAcc <- list()
 listSpd <- list()
 
 for (dataset in datasets) {
-  dataframe <- readARFF(file.path("datasets/original", "Recidivism", dataset))
+  dataframe <- readARFF(file.path("datasets", "original", dataset))
   # index <- createDataPartition(dataframe, p = 0.75, list=FALSE) # split data in 75% train, 25% test
   rowsDF <- nrow(dataframe)
   #Around 75% of the data should be used for the training set
   nTrainDF <- ceiling(0.75 * rowsDF)
 
-  # imputationMethods <- c("ld", "knn", "modeImputation", "missingForestImputation", "mice")
-  imputationMethods <- c("knn", "mode", "missingForest", "mice")
+  imputationMethods <- c("ld", "knn", "modeImputation", "missingForestImputation", "mice")
 
   for (imputationMethod in imputationMethods) {
     datasetName <- paste(imputationMethod, dataset, sep = "_")
-    dataframe <- readARFF(file.path("datasets/imputed", "Recidivism", datasetName))
+    dataframe <- readARFF(file.path("datasets", "imputed", datasetName))
     dataframe <- preprocessData(dataframe)
     
     # Initialize values for sum accuracy and spd
@@ -196,6 +195,5 @@ for (dataset in datasets) {
 
 # save results in file
 print(results)
-filename <- paste(dataset, ".csv", sep = "")
-filepath <- file.path("results", filename)
+filepath <- file.path("results", "results.csv")
 write.csv(x = results, file = filepath)
