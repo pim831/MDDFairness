@@ -18,9 +18,9 @@ source("imputation_methods.R")
 # -------------------------------------------------------------------------------------------------
 
 saveImputedFile <- function(dataframe, name, method) {
-  imputedDataframe <- missingForest(dataframe)
+  imputedDataframe <- method(dataframe)
   filename <- paste(name, dataset, sep="_")
-  writeARFF(dataframe, file.path("datasets", "imputed", filename), overwrite=TRUE)
+  writeARFF(imputedDataframe, file.path("datasets", "imputed", filename), overwrite=TRUE)
 }
 
 # -------------------------------------------------------------------------------------------------
@@ -39,3 +39,4 @@ for (dataset in datasets) {
   saveImputedFile(dataframe, "modeImputation", modeImputation)
   saveImputedFile(dataframe, "mice", miceImputation)
 }
+

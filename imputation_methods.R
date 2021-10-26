@@ -16,7 +16,7 @@ missingForest <- function(dataframe) {
 }
 
 listwiseDeletion <- function(dataframe) {
-  dataframe = na.omit(dataframe)
+  dataframe <- na.omit(dataframe)
   return (dataframe)
 }
 
